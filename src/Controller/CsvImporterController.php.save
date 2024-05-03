@@ -1,0 +1,58 @@
+//
+//namespace App\Controller;
+//
+//use App\Entity\Produit;
+//use App\Entity\Ingredient;
+//use App\Repository\ProduitRepository;
+//use App\Repository\IngredientRepository;
+//use Doctrine\ORM\EntityManagerInterface;
+//use Symfony\Component\HttpFoundation\Request;
+//use Symfony\Component\HttpFoundation\Response;
+//use Symfony\Component\Routing\Annotation\Route;
+//use Symfony\Component\HttpFoundation\File\UploadedFile;
+//use Symfony\Component\HttpFoundation\RedirectResponse;
+//use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+//
+//class CsvImportController extends AbstractController
+//{
+//    #[Route('/import/csv', name: 'import_csv')]
+//    public function import(Request $request, EntityManagerInterface $em, ProduitRepository $produitRepository, IngredientRepository $ingredientRepository): Response
+//    {
+//        $file = $request->files->get('csv_file');
+//        if ($file instanceof UploadedFile) {
+//            $data = array_map('str_getcsv', file($file->getRealPath()));
+//            array_shift($data); // remove the header
+//
+//            foreach ($data as $row) {
+//                $produit = $produitRepository->findOneBy(['Nom' => $row[0], 'Marque' => $row[1]]);
+//                if (!$produit) {
+//                    $produit = new Produit();
+//                    $produit->setNom($row[0]);
+//                    $produit->setMarque($row[1]);
+//                    $produit->setDescription($row[2]);
+//                    $produit->setImages(explode(',', $row[3]));
+//                }
+//
+//                $ingredients = explode(',', $row[4]);
+//                foreach ($ingredients as $nom_ingredient) {
+//                    $ingredient = $ingredientRepository->findOneBy(['Nom_ingredient' => trim($nom_ingredient)]);
+//                    if (!$ingredient) {
+//                        $ingredient = new Ingredient();
+//                        $ingredient->setNomIngredient(trim($nom_ingredient));
+//                        $ingredient->setDescription(''); // Description à définir ou à ajouter au CSV
+//                        $ingredient->setRisqueSeul(0); // Risque à définir ou à ajouter au CSV
+//                        $em->persist($ingredient);
+//                    }
+//                    $produit->addIngredient($ingredient);
+//                }
+//
+//                $em->persist($produit);
+//            }
+//
+//            $em->flush();
+//            return new RedirectResponse('/success');
+//        }
+//
+//        return new Response('Please upload a valid CSV file.', Response::HTTP_BAD_REQUEST);
+//    }
+//}
