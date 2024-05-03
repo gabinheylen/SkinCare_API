@@ -92,3 +92,13 @@ ne_plus_aimer_produit:
     path: /unlike-produit/{produitId}
     controller: App\Controller\ActionController::nePlusAimerProduit
     methods: DELETE
+
+get_mes_produits:
+    path: /mes-produits
+    controller: App\Controller\ActionController::getMesProduits
+    methods: GET
+
+get_produits_aimes:
+    path: /liked
+    controller: App\Controller\ActionController::getProduitsAimes
+    methods: GET

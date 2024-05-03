@@ -33,7 +33,6 @@ class ActionController extends AbstractController
         $this->jwtManager = $jwtManager;
     }
 
-    #[Route('/ajouter-mesproduits/{produitId}', name: 'ajouter_mes_produits', methods: ['POST'])]
     public function ajouterAMesProduits(int $produitId, Request $request): JsonResponse
     {
         $useremail = $this->getUserIdFromToken($request);
@@ -62,7 +61,6 @@ class ActionController extends AbstractController
         return new JsonResponse(['message' => 'Produit ajouté à vos produits'], Response::HTTP_CREATED);
     }
 
-    #[Route('/supprimer-mesproduits/{produitId}', name: 'supprimer_mes_produits', methods: ['DELETE'])]
     public function supprimerDeMesProduits(int $produitId, Request $request): JsonResponse
     {
         $useremail = $this->getUserIdFromToken($request);
@@ -86,8 +84,32 @@ class ActionController extends AbstractController
 
         return new JsonResponse(['message' => 'Produit retiré de vos produits'], Response::HTTP_OK);
     }
+    public function getMesProduits(Request $request): JsonResponse
+    {
+        $response = $this->getUserIdFromToken($request);
+        if ($response->getStatusCode() !== 200) {
+            return $response;  // Retourne l'erreur liée au token
+        }
+        
+        $data = json_decode($response->getContent(), true);
+        $userEmail = $data['email'];
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userEmail]);
+        
+        $mesProduits = $this->entityManager->getRepository(MesProduits::class)->findBy(['user' => $user]);
+        
+        $produits = [];
+        foreach ($mesProduits as $mesProduit) {
+            $produits[] = [
+                'id' => $mesProduit->getProduit()->getId(),
+                'nom' => $mesProduit->getProduit()->getNom(),
+                'description' => $mesProduit->getProduit()->getDescription()
+            ];
+        }
+        
+        return new JsonResponse(['mesProduits' => $produits]);
+    }
 
-    #[Route('/like-produit/{produitId}', name: 'aimer_produit', methods: ['POST'])]
+
     public function aimerProduit(int $produitId, Request $request): JsonResponse
     {
         $useremail = $this->getUserIdFromToken($request);
@@ -116,7 +138,6 @@ class ActionController extends AbstractController
         return new JsonResponse(['message' => 'Produit aimé ajouté'], Response::HTTP_CREATED);
     }
 
-    #[Route('/unlike-produit/{produitId}', name: 'ne_plus_aimer_produit', methods: ['DELETE'])]
     public function nePlusAimerProduit(int $produitId, Request $request): JsonResponse
     {
         $useremail = $this->getUserIdFromToken($request);
@@ -141,6 +162,31 @@ class ActionController extends AbstractController
         return new JsonResponse(['message' => 'Produit retiré de vos aimés'], Response::HTTP_OK);
     }
 
+    
+    public function getProduitsAimes(Request $request): JsonResponse
+    {
+        $response = $this->getUserIdFromToken($request);
+        if ($response->getStatusCode() !== 200) {
+            return $response;  // Retourne l'erreur liée au token
+        }
+
+        $data = json_decode($response->getContent(), true);
+        $userEmail = $data['email'];
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userEmail]);
+        
+        $produitsAimes = $this->entityManager->getRepository(ProduitAimes::class)->findBy(['user' => $user]);
+        
+        $produits = [];
+        foreach ($produitsAimes as $produitAime) {
+            $produits[] = [
+                'id' => $produitAime->getProduit()->getId(),
+                'nom' => $produitAime->getProduit()->getNom(),
+                'description' => $produitAime->getProduit()->getDescription()
+            ];
+        }
+
+        return new JsonResponse(['produitsAimes' => $produits]);
+    }
     public function getUserIdFromToken(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
