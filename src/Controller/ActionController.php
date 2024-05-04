@@ -164,59 +164,76 @@ class ActionController extends AbstractController
 
     
     public function getProduitsAimes(Request $request): JsonResponse
-    {
-        $response = $this->getUserIdFromToken($request);
-        if ($response->getStatusCode() !== 200) {
-            return $response;  // Retourne l'erreur liée au token
-        }
-
-        $data = json_decode($response->getContent(), true);
-        $userEmail = $data['email'];
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userEmail]);
-        
-        $produitsAimes = $this->entityManager->getRepository(ProduitAimes::class)->findBy(['user' => $user]);
-        
-        $produits = [];
-        foreach ($produitsAimes as $produitAime) {
-            $produits[] = [
-                'id' => $produitAime->getProduit()->getId(),
-                'nom' => $produitAime->getProduit()->getNom(),
-                'description' => $produitAime->getProduit()->getDescription()
-            ];
-        }
-
-        return new JsonResponse(['produitsAimes' => $produits]);
-    }
-    public function getUserIdFromToken(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $token = $data['token'] ?? null;
-
-        if (!$token) {
-            $this->logger->warning('Token not provided');
-            return new JsonResponse(['error' => 'Token not provided'], Response::HTTP_BAD_REQUEST);
-        }
-
-        try {
-            $decodedToken = $this->jwtManager->decode($token);
-            if (!$decodedToken) {
-                $this->logger->error('Token decoding failed');
-                return new JsonResponse(['error' => 'Invalid Token'], Response::HTTP_UNAUTHORIZED);
-            }
-            
-            $userEmail = $decodedToken['username'] ?? null;
-            if (!$userEmail) {
-                $this->logger->error('User ID not found in token');
-                return new JsonResponse(['error' => 'User ID not found in token'], Response::HTTP_UNAUTHORIZED);
-            }
-
-            $this->logger->info('Token decoded successfully', ['email' => $userEmail]);
-            return new JsonResponse(['email' => $userEmail], Response::HTTP_OK);
-        } catch (\Exception $e) {
-            $this->logger->error('Token processing error', ['exception' => $e->getMessage()]);
-            return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
-        }
+{
+    $response = $this->getUserIdFromToken($request);
+    if ($response->getStatusCode() !== 200) {
+        return $response;  // Retourne l'erreur liée au token
     }
 
+    $data = json_decode($response->getContent(), true);
+    $userEmail = $data['email'];
+    $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userEmail]);
 
+    $produitsAimes = $this->entityManager->getRepository(ProduitAimes::class)->findBy(['user' => $user]);
+
+    $produits = [];
+    foreach ($produitsAimes as $produitAime) {
+        $produit = $produitAime->getProduit();
+        $produits[] = [
+            'id' => $produit->getId(),
+            'nom' => $produit->getNom(),
+            'description' => $produit->getDescription(),
+            'images' => array_map(function ($imagePath) {
+                return $this->getParameter('host') . $imagePath; // Assurez-vous que 'host' est bien configuré dans parameters.yaml
+            }, $produit->getImages()),
+            // Vous pouvez inclure d'autres propriétés si nécessaire
+            'marque' => $produit->getMarque(),
+            'code' => $produit->getCode(),
+            'ingredients' => array_map(function ($ingredient) {
+                return [
+                    'id' => $ingredient->getId(),
+                    'nom' => $ingredient->getNom()
+                ];
+            }, $produit->getIngredients()->toArray())
+        ];
+    }
+
+    return new JsonResponse(['produitsAimes' => $produits]);
+}
+
+    
+public function getUserIdFromToken(Request $request): JsonResponse
+{
+    // Extraction du JWT depuis le header 'Authorization'
+    $authHeader = $request->headers->get('Authorization');
+    $token = null;
+    if (preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        $token = $matches[1];
+    }
+
+    if (!$token) {
+        $this->logger->warning('JWT not provided in headers');
+        return new JsonResponse(['error' => 'JWT not provided'], Response::HTTP_UNAUTHORIZED);
+    }
+
+    try {
+        $decodedToken = $this->jwtManager->decode($token);
+        if (!$decodedToken) {
+            $this->logger->error('Token decoding failed');
+            return new JsonResponse(['error' => 'Invalid Token'], Response::HTTP_UNAUTHORIZED);
+        }
+        
+        $userEmail = $decodedToken['username'] ?? null;
+        if (!$userEmail) {
+            $this->logger->error('User email not found in token');
+            return new JsonResponse(['error' => 'User email not found in token'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $this->logger->info('Token decoded successfully', ['email' => $userEmail]);
+        return new JsonResponse(['email' => $userEmail], Response::HTTP_OK);
+    } catch (\Exception $e) {
+        $this->logger->error('Token processing error', ['exception' => $e->getMessage()]);
+        return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
+    }
+}
 }
