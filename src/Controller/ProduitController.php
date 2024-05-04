@@ -158,6 +158,12 @@ class ProduitController extends AbstractController
             return new JsonResponse(['message' => 'Produit non trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        $images = $produit->getImages();
+        if (!is_array($images)) {
+            // Si $images n'est pas déjà un tableau, le convertir en tableau
+            $images = explode(";", $images);
+        }
+
         $produitArray = [
             'id' => $produit->getId(),
             'nom' => $produit->getNom(),
@@ -165,7 +171,7 @@ class ProduitController extends AbstractController
             'description' => $produit->getDescription(),
             'images' => array_map(function ($path) {
                 return $this->getParameter('host') . $path;
-            }, explode(";", $produit->getImages())),
+            }, $images),
             'ingredients' => array_map(function ($ingredient) {
                 return [
                     'id' => $ingredient->getId(),
@@ -176,6 +182,7 @@ class ProduitController extends AbstractController
 
         return new JsonResponse($produitArray, JsonResponse::HTTP_OK);
     }
+
 
     public function delete(int $id): JsonResponse
     {

@@ -46,8 +46,18 @@ class AuthController extends AbstractController
         $token = $jwtManager->create($user);  // S'assurer que cette méthode accepte un payload personnalisé
 
         $response = new JsonResponse(['message' => 'Connexion réussie', 'token' => $token]);
-        $response->headers->setCookie(Cookie::create('JWT', $token, time() + 3600, '/', null, false, true, false, 'strict'));
-
+        $response->headers->setCookie(Cookie::create(
+            'JWT',
+            $token,
+            time() + 31536000, // 1 an
+            '/',
+            null,
+            true, // Secure, vrai si vous êtes en HTTPS
+            true, // HttpOnly
+            false,
+            'strict' // SameSite
+        ));
+        
         return $response;
     }
 
