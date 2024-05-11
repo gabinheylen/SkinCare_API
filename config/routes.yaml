@@ -83,6 +83,11 @@ supprimer_mes_produits:
     controller: App\Controller\ActionController::supprimerDeMesProduits
     methods: DELETE
 
+is_produit_dans_mes_produits:
+    path: /is-produit-dans-mes-produits/{produitId}
+    controller: App\Controller\ActionController::isProduitDansMesProduits
+    methods: [GET]
+
 aimer_produit:
     path: /like-produit/{produitId}
     controller: App\Controller\ActionController::aimerProduit
@@ -102,3 +107,8 @@ get_produits_aimes:
     path: /liked
     controller: App\Controller\ActionController::getProduitsAimes
     methods: GET
+
+is_produit_aime:
+    path: /is-produit-aime/{produitId}
+    controller: App\Controller\ActionController::isProduitAime
+    methods: [GET]
