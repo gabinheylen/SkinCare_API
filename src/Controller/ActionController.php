@@ -58,7 +58,7 @@ class ActionController extends AbstractController
         ]);
 
         if ($existingMesProduits) {
-            return new JsonResponse(['error' => 'Ce produit est déjà associé à vos produits'], Response::HTTP_BAD_REQUEST);
+            return $this->supprimerDeMesProduits($produitId, $request);
         }
 
         $mesProduits = new MesProduits();
@@ -156,7 +156,7 @@ class ActionController extends AbstractController
         ]);
 
         if ($existingProduitAime) {
-            return new JsonResponse(['error' => 'Vous avez déjà aimé ce produit'], Response::HTTP_BAD_REQUEST);
+            return $this->nePlusAimerProduit($produitId, $request);
         }
 
         $produitAime = new ProduitAimes();
