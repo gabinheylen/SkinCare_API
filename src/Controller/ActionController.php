@@ -51,6 +51,16 @@ class ActionController extends AbstractController
             return new JsonResponse(['error' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
         }
 
+        // Vérifier si le produit est déjà associé à l'utilisateur
+        $existingMesProduits = $this->entityManager->getRepository(MesProduits::class)->findOneBy([
+            'user' => $user,
+            'produit' => $produit,
+        ]);
+
+        if ($existingMesProduits) {
+            return new JsonResponse(['error' => 'Ce produit est déjà associé à vos produits'], Response::HTTP_BAD_REQUEST);
+        }
+
         $mesProduits = new MesProduits();
         $mesProduits->setUser($user);
         $mesProduits->setProduit($produit);
@@ -137,6 +147,16 @@ class ActionController extends AbstractController
 
         if (!$produit) {
             return new JsonResponse(['error' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Vérifier si l'utilisateur a déjà aimé ce produit
+        $existingProduitAime = $this->entityManager->getRepository(ProduitAimes::class)->findOneBy([
+            'user' => $user,
+            'produit' => $produit,
+        ]);
+
+        if ($existingProduitAime) {
+            return new JsonResponse(['error' => 'Vous avez déjà aimé ce produit'], Response::HTTP_BAD_REQUEST);
         }
 
         $produitAime = new ProduitAimes();
