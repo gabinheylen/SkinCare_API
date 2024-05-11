@@ -131,6 +131,31 @@ class ActionController extends AbstractController
         return new JsonResponse(['mesProduits' => $produits]);
     }
 
+    public function isProduitDansMesProduits(int $produitId, Request $request): JsonResponse
+    {
+        $response = $this->getUserIdFromToken($request);
+        if ($response->getStatusCode() !== 200) {
+            return new JsonResponse(['error' => 'Erreur de token'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($response->getContent(), true);
+        $userEmail = $data['email'];
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userEmail]);
+
+        $produit = $this->entityManager->getRepository(Produit::class)->find($produitId);
+        if (!$produit) {
+            return new JsonResponse(['error' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        $mesProduits = $this->entityManager->getRepository(MesProduits::class)->findOneBy(['user' => $user, 'produit' => $produit]);
+        if ($mesProduits) {
+            return new JsonResponse(['isDansMesProduits' => true]);
+        } else {
+            return new JsonResponse(['isDansMesProduits' => false]);
+        }
+    }
+
+
     public function aimerProduit(int $produitId, Request $request): JsonResponse
     {
         $useremail = $this->getUserIdFromToken($request);
@@ -232,6 +257,29 @@ class ActionController extends AbstractController
         return new JsonResponse(['produitsAimes' => $produits]);
     }
 
+    public function isProduitAime(int $produitId, Request $request): JsonResponse
+    {
+        $response = $this->getUserIdFromToken($request);
+        if ($response->getStatusCode() !== 200) {
+            return new JsonResponse(['error' => 'Erreur de token'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($response->getContent(), true);
+        $userEmail = $data['email'];
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userEmail]);
+
+        $produit = $this->entityManager->getRepository(Produit::class)->find($produitId);
+        if (!$produit) {
+            return new JsonResponse(['error' => 'Produit non trouvé'], Response::HTTP_NOT_FOUND);
+        }
+
+        $produitAime = $this->entityManager->getRepository(ProduitAimes::class)->findOneBy(['user' => $user, 'produit' => $produit]);
+        if ($produitAime) {
+            return new JsonResponse(['isProduitAime' => true]);
+        } else {
+            return new JsonResponse(['isProduitAime' => false]);
+        }
+    }
 
     public function getUserIdFromToken(Request $request): JsonResponse
     {
