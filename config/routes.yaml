@@ -78,11 +78,6 @@ ajouter_mes_produits:
     controller: App\Controller\ActionController::ajouterAMesProduits
     methods: POST
 
-supprimer_mes_produits:
-    path: /supprimer-mesproduits/{produitId}
-    controller: App\Controller\ActionController::supprimerDeMesProduits
-    methods: DELETE
-
 is_produit_dans_mes_produits:
     path: /is-produit-dans-mes-produits/{produitId}
     controller: App\Controller\ActionController::isProduitDansMesProduits
@@ -92,11 +87,6 @@ aimer_produit:
     path: /like-produit/{produitId}
     controller: App\Controller\ActionController::aimerProduit
     methods: POST
-
-ne_plus_aimer_produit:
-    path: /unlike-produit/{produitId}
-    controller: App\Controller\ActionController::nePlusAimerProduit
-    methods: DELETE
 
 get_mes_produits:
     path: /mes-produits
