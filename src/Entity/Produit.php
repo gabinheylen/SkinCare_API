@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\ProduitRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Validator\ProductDetailsValidator;
+use App\Validator\Constraints as CustomAssert;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -14,6 +16,7 @@ class Produit
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -36,6 +39,10 @@ class Produit
 
     #[ORM\Column(length: 255)]
     private ?string $Code = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    #[CustomAssert\ProduitDetailsConstraint]
+    private ?array $details = null;
 
     /**
      * @var Collection<int, ProduitAimes>
@@ -233,6 +240,17 @@ class Produit
             }
         }
 
+        return $this;
+    }
+    
+    public function getDetails(): ?array
+    {
+        return $this->details;
+    }
+
+    public function setDetails(?array $details): self
+    {
+        $this->details = $details;
         return $this;
     }
 }

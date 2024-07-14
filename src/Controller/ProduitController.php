@@ -13,7 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-
 class ProduitController extends AbstractController
 {
     private $entityManager;
@@ -33,11 +32,11 @@ class ProduitController extends AbstractController
         $produit->setDescription($request->request->get('description'));
         $produit->setCode($request->request->get('code'));
 
-        $errors = $validator->validate($produit);
-        if (count($errors) > 0) {
-            $logger->error('Validation failed for product', ['errors' => (string) $errors]);
-            return new JsonResponse(['message' => (string) $errors], Response::HTTP_BAD_REQUEST);
+        $details = $request->request->get('details');
+        if (is_string($details)) {
+            $details = json_decode($details, true);
         }
+        $produit->setDetails($details);
 
         $logger->info('Validation successful');
 
@@ -78,6 +77,7 @@ class ProduitController extends AbstractController
         return new JsonResponse(['message' => 'Produit créé avec succès', 'product_id' => $produit->getId()], Response::HTTP_CREATED);
     }
 
+
     public function update(Request $request, int $id): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -90,8 +90,8 @@ class ProduitController extends AbstractController
         $produit->setNom($data['nom'] ?? $produit->getNom());
         $produit->setMarque($data['marque'] ?? $produit->getMarque());
         $produit->setDescription($data['description'] ?? $produit->getDescription());
+        $produit->setDetails($data['details'] ?? $produit->getDetails());
 
-        // Gestion du téléchargement d'images
         $images = $request->files->get('images');
         if ($images) {
             $paths = [];
@@ -133,6 +133,7 @@ class ProduitController extends AbstractController
                 'marque' => $produit->getMarque(),
                 'code' => $produit->getCode(),
                 'description' => $produit->getDescription(),
+                'details' => $produit->getDetails(),
                 'images' => array_map(function ($path) {
                     return $this->getParameter('host') . $path;
                 }, $produit->getImages()),
@@ -148,8 +149,6 @@ class ProduitController extends AbstractController
         return new JsonResponse($produitsArray, JsonResponse::HTTP_OK);
     }
 
-
-
     public function getById(int $id): JsonResponse
     {
         $produit = $this->entityManager->getRepository(Produit::class)->find($id);
@@ -160,7 +159,6 @@ class ProduitController extends AbstractController
 
         $images = $produit->getImages();
         if (!is_array($images)) {
-            // Si $images n'est pas déjà un tableau, le convertir en tableau
             $images = explode(";", $images);
         }
 
@@ -169,6 +167,7 @@ class ProduitController extends AbstractController
             'nom' => $produit->getNom(),
             'marque' => $produit->getMarque(),
             'description' => $produit->getDescription(),
+            'details' => $produit->getDetails(),
             'images' => array_map(function ($path) {
                 return $this->getParameter('host') . $path;
             }, $images),
@@ -183,6 +182,38 @@ class ProduitController extends AbstractController
         return new JsonResponse($produitArray, JsonResponse::HTTP_OK);
     }
 
+    public function getByCode(int $code): JsonResponse
+    {
+        $produit = $this->entityManager->getRepository(Produit::class)->findOneBy(['Code' => $code]);
+
+        if (!$produit) {
+            return new JsonResponse(['message' => 'Produit non trouvé'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $images = $produit->getImages();
+        if (!is_array($images)) {
+            $images = explode(";", $images);
+        }
+
+        $produitArray = [
+            'id' => $produit->getId(),
+            'nom' => $produit->getNom(),
+            'marque' => $produit->getMarque(),
+            'description' => $produit->getDescription(),
+            'details' => $produit->getDetails(),
+            'images' => array_map(function ($path) {
+                return $this->getParameter('host') . $path;
+            }, $images),
+            'ingredients' => array_map(function ($ingredient) {
+                return [
+                    'id' => $ingredient->getId(),
+                    'nom' => $ingredient->getNom()
+                ];
+            }, $produit->getIngredients()->toArray())
+        ];
+
+        return new JsonResponse($produitArray, JsonResponse::HTTP_OK);
+    }
 
     public function delete(int $id): JsonResponse
     {

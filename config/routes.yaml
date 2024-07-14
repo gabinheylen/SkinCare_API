@@ -13,17 +13,14 @@ main:
     path: /
     controller: App\Controller\MainController::index
 
-
 login:
     path: /login
     controller: App\Controller\AuthController::login
     methods: ['POST']
-
 register:
     path: /register
     controller: App\Controller\AuthController::register
     methods: ['POST']
-
 logout:
     path: /logout
     controller: App\Controller\AuthController::logout
@@ -39,31 +36,26 @@ produit_create:
     path: /produits
     controller: App\Controller\ProduitController::create
     methods: [POST]
-
 produit_update:
     path: /produits/{id}
     controller: App\Controller\ProduitController::update
     methods: [PUT]
     requirements:
         id: '\d+'
-
 produit_get_all:
     path: /produits
     controller: App\Controller\ProduitController::getAll
     methods: [GET]
-
 produit_get_by_id:
     path: /produits/{id}
     controller: App\Controller\ProduitController::getById
     methods: [GET]
     requirements:
         id: '\d+'
-
 produit_get_by_code:
     path: /produits/code/{code}
     controller: App\Controller\ProduitController::getByCode
     methods: [GET]
-
 produit_delete:
     path: /produits/{id}
     controller: App\Controller\ProduitController::delete
@@ -72,33 +64,54 @@ produit_delete:
         id: '\d+'
 
 # config/routes/action_controller.yaml
-
 ajouter_mes_produits:
     path: /ajouter-mesproduits/{produitId}
     controller: App\Controller\ActionController::ajouterAMesProduits
     methods: POST
-
 is_produit_dans_mes_produits:
     path: /is-produit-dans-mes-produits/{produitId}
     controller: App\Controller\ActionController::isProduitDansMesProduits
     methods: [GET]
-
 aimer_produit:
     path: /like-produit/{produitId}
     controller: App\Controller\ActionController::aimerProduit
     methods: POST
-
 get_mes_produits:
     path: /mes-produits
     controller: App\Controller\ActionController::getMesProduits
     methods: GET
-
 get_produits_aimes:
     path: /liked
     controller: App\Controller\ActionController::getProduitsAimes
     methods: GET
-
 is_produit_aime:
     path: /is-produit-aime/{produitId}
     controller: App\Controller\ActionController::isProduitAime
+    methods: [GET]
+
+ProfilDerma_Create:
+    path: /profil/create
+    controller: App\Controller\ProfilDermatologiqueController::create
+    methods: POST
+ProfilDerma_Update:
+    path: /profil/update/{id}
+    controller: App\Controller\ProfilDermatologiqueController::update
+    methods: PUT
+ProfilDerma_GetMine:
+    path: /profil/mine
+    controller: App\Controller\ProfilDermatologiqueController::getMine
+    methods: GET
+ProfilDerma_Delete:
+    path: /profil/delete/{id}
+    controller: App\Controller\ProfilDermatologiqueController::delete
+    methods: DELETE
+
+product_evaluate:
+    path: /evaluate/{productId}
+    controller: App\Controller\EvaluationController::evaluateProduct
+    methods: [GET]
+
+search:
+    path: /search
+    controller: App\Controller\SearchController::search
     methods: [GET]

@@ -8,6 +8,8 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -15,10 +17,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['user:read', 'user:write', 'profil:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[ORM\Column(type: 'string', length: 180, unique: true)]
+    #[Groups(['user:read', 'user:write', 'profil:read'])]
     private ?string $email = null;
 
     /**
@@ -66,10 +70,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: MesProduits::class, mappedBy: 'user')]
     private Collection $mesProduits;
 
+    /**
+     * @var Collection<int, ProfilDermatologique>
+     */
+    #[ORM\OneToMany(targetEntity: ProfilDermatologique::class, mappedBy: 'user')]
+    #[Groups(['user'])]
+    private Collection $profilDermatologiques;
+
     public function __construct()
     {
         $this->produitAimes = new ArrayCollection();
         $this->mesProduits = new ArrayCollection();
+        $this->profilDermatologiques = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -302,6 +314,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($mesProduit->getUser() === $this) {
                 $mesProduit->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ProfilDermatologique>
+     */
+    public function getProfilDermatologiques(): Collection
+    {
+        return $this->profilDermatologiques;
+    }
+
+    public function addProfilDermatologique(ProfilDermatologique $profilDermatologique): static
+    {
+        if (!$this->profilDermatologiques->contains($profilDermatologique)) {
+            $this->profilDermatologiques->add($profilDermatologique);
+            $profilDermatologique->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProfilDermatologique(ProfilDermatologique $profilDermatologique): static
+    {
+        if ($this->profilDermatologiques->removeElement($profilDermatologique)) {
+            // set the owning side to null (unless already changed)
+            if ($profilDermatologique->getUser() === $this) {
+                $profilDermatologique->setUser(null);
             }
         }
 

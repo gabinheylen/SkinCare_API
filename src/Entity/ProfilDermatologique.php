@@ -1,65 +1,57 @@
 <?php
+// src/Entity/ProfilDermatologique.php
 
 namespace App\Entity;
 
 use App\Repository\ProfilDermatologiqueRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Validator\Constraints as CustomAssert;
+use Symfony\Component\Serializer\Annotation\Groups;
+use App\Entity\User;
 
 #[ORM\Entity(repositoryClass: ProfilDermatologiqueRepository::class)]
 class ProfilDermatologique
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['profil:read', 'profil:write'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::ARRAY)]
-    private array $Type_de_peau = [];
+    #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['profil:read', 'profil:write'])]
+    private ?array $profileData = null;
 
-    #[ORM\Column(type: Types::ARRAY)]
-    private array $Sensibilite = [];
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'profilDermatologiques')]
+    #[Groups(['profil_dermatologique'])]
+    private ?User $User = null;
 
-    #[ORM\Column(type: Types::ARRAY)]
-    private array $Autre = [];
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTypeDePeau(): array
+    public function getProfileData(): ?array
     {
-        return $this->Type_de_peau;
+        return $this->profileData;
     }
 
-    public function setTypeDePeau(array $Type_de_peau): static
+    public function setProfileData(?array $profileData): self
     {
-        $this->Type_de_peau = $Type_de_peau;
+        $this->profileData = $profileData;
 
         return $this;
     }
 
-    public function getSensibilite(): array
+    public function getUser(): ?User
     {
-        return $this->Sensibilite;
+        return $this->User;
     }
 
-    public function setSensibilite(array $Sensibilite): static
+    public function setUser(?User $User): static
     {
-        $this->Sensibilite = $Sensibilite;
-
-        return $this;
-    }
-
-    public function getAutre(): array
-    {
-        return $this->Autre;
-    }
-
-    public function setAutre(array $Autre): static
-    {
-        $this->Autre = $Autre;
+        $this->User = $User;
 
         return $this;
     }
