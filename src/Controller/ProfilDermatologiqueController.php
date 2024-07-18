@@ -60,7 +60,10 @@ class ProfilDermatologiqueController extends AbstractController
         if (!$user) {
             return new JsonResponse(['error' => 'Utilisateur non trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
-
+        $isderma = $em->getRepository(ProfilDermatologique::class)->findOneBy(['user' => $user]);
+        if($isderma){
+            return new JsonResponse(['error' => 'Profil déjà créé'], JsonResponse::HTTP_BAD_REQUEST);
+        }
         // Désérialiser les données en objet ProfilDermatologique
         $profil = $serializer->deserialize(json_encode($data), ProfilDermatologique::class, 'json');
         
@@ -94,16 +97,10 @@ class ProfilDermatologiqueController extends AbstractController
 }
 
     /**
- * @Route("/profil/update/{id}", name="profil_update", methods={"PUT"})
+ * @Route("/profil/update/", name="profil_update", methods={"PUT"})
  */
-public function update(int $id, Request $request, EntityManagerInterface $em, ProfilDermatologiqueRepository $repository, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
+public function update(Request $request, EntityManagerInterface $em, ProfilDermatologiqueRepository $repository, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
 {
-    // Récupérer le profil à mettre à jour
-    $profil = $repository->find($id);
-    if (!$profil) {
-        return $this->json(['message' => 'Profil non trouvé'], 404);
-    }
-
     // Décoder le contenu JSON de la requête
     $data = json_decode($request->getContent(), true);
     if ($data === null) {
@@ -122,12 +119,12 @@ public function update(int $id, Request $request, EntityManagerInterface $em, Pr
             return new JsonResponse(['error' => 'Utilisateur non trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        $profil = $em->getRepository(ProfilDermatologique::class)->findOneBy(['user' => $user]);
+        if(!$profil){
+            return new JsonResponse(['error' => 'Aucun profil créé'], JsonResponse::HTTP_BAD_REQUEST);
+        }
         // Désérialiser les données en objet ProfilDermatologique existant
         $serializer->deserialize(json_encode($data), ProfilDermatologique::class, 'json', ['object_to_populate' => $profil]);
-
-        if ($profil === null) {
-            return new JsonResponse(['error' => 'Désérialisation échouée'], JsonResponse::HTTP_BAD_REQUEST);
-        }
 
         // Associer l'utilisateur au profil (au cas où cette information peut changer)
         $profil->setUser($user);
