@@ -94,7 +94,7 @@ ProfilDerma_Create:
     controller: App\Controller\ProfilDermatologiqueController::create
     methods: POST
 ProfilDerma_Update:
-    path: /profil/update/
+    path: /profil/update
     controller: App\Controller\ProfilDermatologiqueController::update
     methods: PUT
 ProfilDerma_GetMine:

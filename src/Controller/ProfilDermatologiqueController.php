@@ -60,7 +60,7 @@ class ProfilDermatologiqueController extends AbstractController
         if (!$user) {
             return new JsonResponse(['error' => 'Utilisateur non trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
-        $isderma = $em->getRepository(ProfilDermatologique::class)->findOneBy(['user' => $user]);
+        $isderma = $em->getRepository(ProfilDermatologique::class)->findOneBy(['User' => $user]);
         if($isderma){
             return new JsonResponse(['error' => 'Profil déjà créé'], JsonResponse::HTTP_BAD_REQUEST);
         }
@@ -119,7 +119,7 @@ public function update(Request $request, EntityManagerInterface $em, ProfilDerma
             return new JsonResponse(['error' => 'Utilisateur non trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $profil = $em->getRepository(ProfilDermatologique::class)->findOneBy(['user' => $user]);
+        $profil = $em->getRepository(ProfilDermatologique::class)->findOneBy(['User' => $user]);
         if(!$profil){
             return new JsonResponse(['error' => 'Aucun profil créé'], JsonResponse::HTTP_BAD_REQUEST);
         }
