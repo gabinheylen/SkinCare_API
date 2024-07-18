@@ -171,7 +171,6 @@ public function update(int $id, Request $request, EntityManagerInterface $em, Pr
             }
             // Récupérer le profil dermatologique de l'utilisateur
             $profil = $em->getRepository(ProfilDermatologique::class)->findOneBy(['User' => $user]);
-            error_log(json_encode($profil->getProfileData()));
             if (!$profil) {
                 return new JsonResponse(['error' => 'Profil dermatologique non trouvé'], Response::HTTP_NOT_FOUND);
             }
