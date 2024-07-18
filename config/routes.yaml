@@ -27,13 +27,13 @@ logout:
     methods: ['POST']
 get_user_info:
     path: /api/user
-    controller: App\Controller\UserController::getUserInfo
+    controller: App\Controller\AuthController::getUserInfo
     methods: [GET]
 update_user_info:
     path: /api/user
-    controller: App\Controller\UserController::updateUserInfo
+    controller: App\Controller\AuthController::updateUserInfo
     methods: [PUT]
-    
+
 import_csv:
     path: /import/csv
     controller: App\Controller\CsvImporterController::index
