@@ -7,8 +7,6 @@ controllers:
     
 # config/routes.yaml
 
-# config/routes.yaml
-
 main:
     path: /
     controller: App\Controller\MainController::index
@@ -25,6 +23,14 @@ logout:
     path: /logout
     controller: App\Controller\AuthController::logout
     methods: ['POST']
+get_user_info:
+    path: /api/user
+    controller: App\Controller\UserController::getUserInfo
+    methods: [GET]
+update_user_info:
+    path: /api/user
+    controller: App\Controller\UserController::updateUserInfo
+    methods: [PUT]
 
 import_csv:
     path: /import/csv
@@ -59,13 +65,7 @@ produit_get_by_code:
 produit_delete:
     path: /produits/{id}
     controller: App\Controller\ProduitController::delete
-    methods: [DELETE]
-    requirements:
-        id: '\d+'
-
-# config/routes/action_controller.yaml
-ajouter_mes_produits:
-    path: /ajouter-mesproduits/{produitId}
+    methods: [DELETE]3oduits/{produitId}
     controller: App\Controller\ActionController::ajouterAMesProduits
     methods: POST
 is_produit_dans_mes_produits:
@@ -73,12 +73,7 @@ is_produit_dans_mes_produits:
     controller: App\Controller\ActionController::isProduitDansMesProduits
     methods: [GET]
 aimer_produit:
-    path: /like-produit/{produitId}
-    controller: App\Controller\ActionController::aimerProduit
-    methods: POST
-get_mes_produits:
-    path: /mes-produits
-    controller: App\Controller\ActionController::getMesProduits
+    path: /like-produit/3roller\ActionController::getMesProduits
     methods: GET
 get_produits_aimes:
     path: /liked
@@ -114,4 +109,4 @@ product_evaluate:
 search:
     path: /search
     controller: App\Controller\SearchController::search
-    methods: [GET]
+    methods: [GET]3
