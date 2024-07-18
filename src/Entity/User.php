@@ -74,7 +74,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, ProfilDermatologique>
      */
     #[ORM\OneToMany(targetEntity: ProfilDermatologique::class, mappedBy: 'user')]
-    #[Groups(['user'])]
+    #[Groups(['user:read'])]
     private Collection $profilDermatologiques;
 
     public function __construct()

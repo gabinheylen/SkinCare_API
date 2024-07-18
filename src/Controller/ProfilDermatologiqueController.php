@@ -93,35 +93,46 @@ class ProfilDermatologiqueController extends AbstractController
     }
 }
 
-
     /**
-     * @Route("/profil/{id}", name="profil_show", methods={"GET"})
-     */
-    public function show(int $id, ProfilDermatologiqueRepository $repository): JsonResponse
-    {
-        $profil = $repository->find($id);
-        if (!$profil) {
-            return $this->json(['message' => 'Profil not found'], 404);
-        }
-
-        return $this->json($profil);
+ * @Route("/profil/update/{id}", name="profil_update", methods={"PUT"})
+ */
+public function update(int $id, Request $request, EntityManagerInterface $em, ProfilDermatologiqueRepository $repository, SerializerInterface $serializer, ValidatorInterface $validator): JsonResponse
+{
+    // Récupérer le profil à mettre à jour
+    $profil = $repository->find($id);
+    if (!$profil) {
+        return $this->json(['message' => 'Profil non trouvé'], 404);
     }
 
-    /**
-     * @Route("/profil/update/{id}", name="profil_update", methods={"PUT"})
-     */
-    public function update(int $id, Request $request, EntityManagerInterface $em, ProfilDermatologiqueRepository $repository, ValidatorInterface $validator, SerializerInterface $serializer): JsonResponse
-    {
-        $profil = $repository->find($id);
-        if (!$profil) {
-            return $this->json(['message' => 'Profil not found'], 404);
+    // Décoder le contenu JSON de la requête
+    $data = json_decode($request->getContent(), true);
+    if ($data === null) {
+        return new JsonResponse(['error' => 'JSON invalide'], JsonResponse::HTTP_BAD_REQUEST);
+    }
+
+    // Récupérer l'email de l'utilisateur à partir du token
+    $useremail = $this->getUserIdFromToken($request);
+    if ($useremail->getStatusCode() == 200) {
+        $responseData = json_decode($useremail->getContent(), true);
+        $userEmail = $responseData['email'];
+
+        // Utiliser l'email utilisateur pour récupérer l'entité User correspondante
+        $user = $em->getRepository(User::class)->findOneBy(['email' => $userEmail]);
+        if (!$user) {
+            return new JsonResponse(['error' => 'Utilisateur non trouvé'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        // Deserialize JSON data to ProfilDermatologique entity
-        $data = json_decode($request->getContent(), true);
+        // Désérialiser les données en objet ProfilDermatologique existant
         $serializer->deserialize(json_encode($data), ProfilDermatologique::class, 'json', ['object_to_populate' => $profil]);
 
-        // Validate the entity
+        if ($profil === null) {
+            return new JsonResponse(['error' => 'Désérialisation échouée'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Associer l'utilisateur au profil (au cas où cette information peut changer)
+        $profil->setUser($user);
+
+        // Valider l'entité ProfilDermatologique
         $errors = $validator->validate($profil);
 
         if (count($errors) > 0) {
@@ -132,10 +143,15 @@ class ProfilDermatologiqueController extends AbstractController
             return $this->json(['message' => implode(', ', $errorMessages)], 400);
         }
 
+        // Persister les modifications
         $em->flush();
 
-        return $this->json($profil);
+        // Retourner la réponse JSON avec les groupes de sérialisation appropriés
+        return $this->json($profil, 200, [], ['groups' => ['profil_dermatologique']]);
+    } else {
+        return $useremail; // Retourner la réponse d'erreur de getUserIdFromToken
     }
+}
 
     /**
      * @Route("/profil/mine", name="profil_mine", methods={"GET"})
@@ -153,18 +169,14 @@ class ProfilDermatologiqueController extends AbstractController
             if (!$user) {
                 return new JsonResponse(['error' => 'Utilisateur non trouvé'], Response::HTTP_NOT_FOUND);
             }
-
             // Récupérer le profil dermatologique de l'utilisateur
-            $profil = $em->getRepository(ProfilDermatologique::class)->findOneBy(['user' => $user]);
-
+            $profil = $em->getRepository(ProfilDermatologique::class)->findOneBy(['User' => $user]);
+            error_log(json_encode($profil->getProfileData()));
             if (!$profil) {
                 return new JsonResponse(['error' => 'Profil dermatologique non trouvé'], Response::HTTP_NOT_FOUND);
             }
 
-            // Sérialiser l'entité ProfilDermatologique pour la réponse JSON
-            $profilData = $serializer->serialize($profil, 'json');
-
-            return new JsonResponse(json_decode($profilData), Response::HTTP_OK);
+            return new JsonResponse(json_decode(json_encode($profil->getProfileData())), Response::HTTP_OK);
         } else {
             return $useremail;
         }

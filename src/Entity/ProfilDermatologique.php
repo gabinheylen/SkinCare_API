@@ -23,7 +23,7 @@ class ProfilDermatologique
     private ?array $profileData = null;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'profilDermatologiques')]
-    #[Groups(['profil_dermatologique'])]
+    #[Groups(['profil:read'])]
     private ?User $User = null;
 
 
